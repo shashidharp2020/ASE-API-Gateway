@@ -1,0 +1,6 @@
+/.scannerwork
+/node_modules
+/sonar-project.properties
+/src/other
+/daemon
+/logs/*
