@@ -1,4 +1,4 @@
-# SailPointInterface
+# API Gateway for AppScan Enterprise
 
 ## Installation steps
 
