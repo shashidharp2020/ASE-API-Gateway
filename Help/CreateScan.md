@@ -57,34 +57,34 @@ Payload Example:
 }  
 
 ----------------------------------------------------------------------  
-templateId: Id of the template.  
-testPolicyId: Id of the test policy.  
-folderId: Id of the folder where the scan job needs to be saved.  
-name: Name for a scan job.  
-description: A small description of a scan job.  
-contact: A contact name for a scan job.  
-StartingUrl: Starting URL of the target application.  
-LoginMethod: Manual/Automatic/None  
+- templateId (Required): Id of the template.  
+- testPolicyId (Required): Id of the test policy.  
+- folderId (Required): Id of the folder where the scan job needs to be saved.  
+- name (Required): Name for a scan job.  
+- description (Optional): A small description of a scan job.  
+- contact (Optional): A contact name for a scan job.  
+- StartingUrl (Optional): Starting URL of the target application.  
+- LoginMethod (Optional): Manual/Automatic/None  
 &nbsp;&nbsp;&nbsp;&nbsp;Manual - Use the uploaded login file recording to login to a target application.  
 &nbsp;&nbsp;&nbsp;&nbsp;Automatic - Use the supplied username and password to login to a target application.   
 &nbsp;&nbsp;&nbsp;&nbsp;None - There is no need to login to a target application to complete the scan.  
-LoginUsername: User name or User Id to login to a target application. This is used only if the login method is set to 'Automatic'.  
-LoginPassword: Password for a target application. This is used only if the login method is set to 'Automatic'.  
-TestOptimization:  
+- LoginUsername (Optional): User name or User Id to login to a target application. This is used only if the login method is set to 'Automatic'.  
+- LoginPassword (Optional): Password for a target application. This is used only if the login method is set to 'Automatic'.  
+- TestOptimization (Optional):  
 &nbsp;&nbsp;&nbsp;&nbsp;0 - No optimization  
 &nbsp;&nbsp;&nbsp;&nbsp;1 - Fast  
 &nbsp;&nbsp;&nbsp;&nbsp;2 - Faster  
 &nbsp;&nbsp;&nbsp;&nbsp;3 - Fastest  
-scanTypeId: 
-&nbsp;&nbsp;&nbsp;&nbsp;1 - Full Scan (Explore and Test)
+- scanTypeId (Optional):  
+&nbsp;&nbsp;&nbsp;&nbsp;1 - Full Scan (Explore and Test)  
 &nbsp;&nbsp;&nbsp;&nbsp;2 - Explore Only  
 &nbsp;&nbsp;&nbsp;&nbsp;3 - Test Only  
-serverId: Id of the Agent/Scanner.  
-additionalDomains: The domain of the starting URL is included by default. If additional domains need to be considered for a scan, provide them separated by a comma.  
-applicationId: Id of the application for a scan to be associated with.    
-createApplication: true/false. If the application Id is not provided and if this value is set to true a new application is created and the scan created would be associated with it.   
-run: true/false. The value true starts the scan job after the creation.  
-alertSubscription: Sends notification email to subscribers for configured events.  
+- serverId (Optional): Id of the Agent/Scanner.  
+- additionalDomains (Optional): The domain of the starting URL is included by default. If additional domains need to be considered for a scan, provide them separated by a comma.  
+- applicationId: Id of the application for a scan to be associated with.    
+- createApplication (Optional): true/false. If the application Id is not provided and if this value is set to true a new application is created and the scan created would be associated with it.   
+- run (Optional): true/false. The value true starts the scan job after the creation.  
+- alertSubscription (Optional): Sends notification email to subscribers for configured events.  
 &nbsp;&nbsp;&nbsp;&nbsp;subscriberIds - Ids of users to receive email alerts. User Ids are separated by a comma.   
 &nbsp;&nbsp;&nbsp;&nbsp;eventType -  EventIds for which you want to configure Alerts.  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1 - Started  
@@ -94,7 +94,7 @@ alertSubscription: Sends notification email to subscribers for configured events
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;5 - Resumed  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;6 - Completed  
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7 - Failed to complete   
-scanSchedule:  
+- scanSchedule (Optional):  
 &nbsp;&nbsp;&nbsp;&nbsp;enableSchedule- true to enable the schedule, false to disable  
 &nbsp;&nbsp;&nbsp;&nbsp;scheduleStartDate- Schedule Start Date in format yyyy/MM/dd hh:mm a | Example: 2018/02/21 4:30 PM  
 &nbsp;&nbsp;&nbsp;&nbsp;scheduleEndDate- Schedule End Date in format yyyy/MM/dd hh:mm a | Example: 2018/03/21 4:30 PM | Optional  
