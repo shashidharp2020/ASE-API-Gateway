@@ -46,10 +46,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 //Routers for ase
-app.use('/ase/api/accounts', require('./src/ase/routes/accounts'));
-app.use('/ase/api/entitlements', require('./src/ase/routes/entitlements'));
-app.use('/ase/api/auth', require('./src/commons/routes/auth'));
+app.use('/ase/api/user', require('./src/ase/routes/user'));
+app.use('/ase/api/usertype', require('./src/ase/routes/usertype'));
+app.use('/ase/api/auth', require('./src/ase/routes/auth'));
 app.use('/ase/api/job', require('./src/ase/routes/job'));
+app.use('/ase/api/issue', require('./src/ase/routes/issue'));
+app.use('/ase/api/application', require('./src/ase/routes/application'));
 require('./src/utils/swagger')(app);
 
 logger.info(constants.SWAGGER_PAGE_URL+` https://`+hostname+`:`+process.env.SECURE_PORT+constants.SWAGGER_CONTEXT_URL); 

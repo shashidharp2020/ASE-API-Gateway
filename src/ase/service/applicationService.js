@@ -11,9 +11,24 @@ methods.createApplication = async (inputData, token) => {
     return await util.httpCall("POST",token, url, JSON.stringify(inputData));
 };
 
+methods.updateApplication = async (inputData, appId, etag, token) => {
+    const url = constants.ASE_UPDATE_APPLICATION.replace("{APPID}", appId);
+    return await util.httpCall("PUT",token, url, JSON.stringify(inputData), etag);
+};
+
 methods.deleteApplicaiton = async (appId, token) => {
     const url = constants.ASE_DELETE_APPLICATION.replace("{APPID}", appId);
     return await util.httpCall("DELETE",token, url);
+};
+
+methods.getApplicaiton = async (appId, token) => {
+    const url = constants.ASE_GET_APPLICATION.replace("{APPID}", appId);
+    return await util.httpCall("GET",token, url);
+};
+
+methods.getApplicaitons = async (token) => {
+    const url = constants.ASE_GET_APPLICATIONS;
+    return await util.httpCall("GET",token, url);
 };
 
 module.exports = methods;

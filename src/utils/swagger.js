@@ -14,9 +14,9 @@ module.exports = function(app){
 			openapi: '3.0.0',
 			basePath: constants.CONTEXT_API,
 			info: {
-				title: constants.SAILPOINT_INTERFACE,
+				title: constants.ASE_API_GATEWAY,
 				version: constants.SWAGGER_VERSION,
-				description: constants.SAILPOINT_INTERFACE
+				description: constants.ASE_API_GATEWAY
 			},
 			servers: [
 				{

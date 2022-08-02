@@ -1,6 +1,7 @@
 const constants = require('./constants');
 const https = require("https");
 const FormData = require("form-data");
+const logger = require('node-windows/lib/eventlog');
 
 var methods = {};
 methods.resolveFullName = function(fullName) {
@@ -58,112 +59,33 @@ methods.httpCall = function(method, token, url, data, etag) {
     return new Promise((resolve, reject) => {
         const req = https.request(httpOptions, (res) => {
             if (res.statusCode >= 200 && res.statusCode <= 299) {
+                var result;
+                var data="";
                 res.on("data", async (d) => {
-                    var result = JSON.parse(d);
-                    if(method==="GET" && res.headers["etag"])
-                        result["etag"] = res.headers["etag"];
-                    resolve({"code": res.statusCode, "message": result});
+                    data = data + d;
                 }).on("end", () => {
-                    resolve({"code": res.statusCode});
+                    try{
+                        result = JSON.parse(data);
+                    }
+                    catch(error){
+                        //console.log("data is not a json object");
+                        //do nothing.
+                    }
+                    (result) ? resolve({"code": res.statusCode, "data": result}) : resolve({"code": res.statusCode});
+                    if(method==="GET" && res.headers["etag"]) result["etag"] = res.headers["etag"];
                 }).on("error", (error) => {
-                    reject({"code": 500, "message": "Internal Server Error "+ error});
+                    reject({"code": 500, "data": "Internal Server Error "+ error});
                 });
             }
             else 
-                reject({"code": res.statusCode, "message": res.statusMessage});
+                reject({"code": res.statusCode, "data": res.statusMessage});
         });
 
-        if(method==="POST") req.write(data);
+        if((method==="POST" || method==="PUT") && dataLength > 0) req.write(data);
         req.end();
     });
 }
 
-// methods.httpPost = function(token, url, data, etag) {
-//     const httpOptions = methods.httpOption(token, "POST", url, data.length, etag);
-//     return new Promise((resolve, reject) => {
-//         const req = https.request(httpOptions, (res) => {
-//             if (res.statusCode >= 200 && res.statusCode <= 299) {
-//                 res.on("data", async (d) => {
-//                     resolve({"code": res.statusCode, "message": JSON.parse(d)});
-//                 }).on("end", () => {
-//                     resolve({"code": res.statusCode});
-//                 }).on("error", (error) => {
-//                     reject({"code": 500, "message": "Internal Server Error "+ error});
-//                 });
-//             }
-//             else 
-//                 reject({"code": res.statusCode, "message": res.statusMessage});
-//         });
-
-//         req.write(data);
-//         req.end();
-//     });
-// }
-
-// methods.httpPut = function(token, url) {
-//     const httpOptions = methods.httpOption(token, "PUT", url);
-//     return new Promise((resolve, reject) => {
-//         const req = https.request(httpOptions, (res) => {
-//             if (res.statusCode >= 200 && res.statusCode <= 299) {
-//                 res.on("data", async (d) => {
-//                     resolve({"code": res.statusCode, "message": JSON.parse(d)});
-//                 }).on("end", () => {
-//                     resolve({"code": res.statusCode});
-//                 }).on("error", (error) => {
-//                     reject({"code": 500, "message": "Internal Server Error "+ error});
-//                 });
-//             }
-//             else 
-//                 reject({"code": res.statusCode, "message": res.statusMessage});
-//         });
-
-//         req.end();
-//     });
-// }
-
-// methods.httpDelete = function(token, url) {
-//     const httpOptions = methods.httpOption(token, "DELETE", url);
-//     return new Promise((resolve, reject) => {
-//         const req = https.request(httpOptions, (res) => {
-//             if (res.statusCode >= 200 && res.statusCode <= 299) {
-//                 res.on("data", async (d) => {
-//                     resolve({"code": res.statusCode, "message": JSON.parse(d)});
-//                 }).on("end", () => {
-//                     resolve({"code": res.statusCode});
-//                 }).on("error", (error) => {
-//                     reject({"code": 500, "message": "Internal Server Error "+ error});
-//                 });
-//             }
-//             else 
-//                 reject({"code": res.statusCode, "message": res.statusMessage});
-//         });
-
-//         req.end();
-//     });
-// }
-
-// methods.httpGet = function(token, url) {
-//     const httpOptions = methods.httpOption(token, "GET", url);
-//     return new Promise((resolve, reject) => {
-//         const req = https.request(httpOptions, (res) => {
-//             if (res.statusCode >= 200 && res.statusCode <= 299) {
-//                 res.on("data", async (d) => {
-//                     var result = JSON.parse(d);
-//                     if(res.headers["etag"]) result["etag"] = res.headers["etag"];
-//                     resolve({"code": res.statusCode, "message": result});
-//                 }).on("end", () => {
-//                     resolve({"code": res.statusCode});
-//                 }).on("error", (error) => {
-//                     reject({"code": 500, "message": "Internal Server Error "+ error});
-//                 });
-//             }
-//             else 
-//                 reject({"code": res.statusCode, "message": res.statusMessage});
-//         });
-
-//         req.end();
-//     });
-// }
 
 methods.httpFileUpload = function(token, url, filePath, fileName) {
 		var formData = new FormData();
@@ -190,15 +112,15 @@ methods.httpFileUpload = function(token, url, filePath, fileName) {
             const req = https.request(httpOptions, (res) => {
                 if (res.statusCode >= 200 && res.statusCode <= 299) {
                     res.on("data", async (d) => {
-                        resolve({"code": res.statusCode, "message": JSON.parse(d)});
+                        resolve({"code": res.statusCode, "data": JSON.parse(d)});
                     }).on("end", () => {
                         resolve({"code": res.statusCode});
                     }).on("error", (error) => {
-                        reject({"code": 500, "message": "Internal Server Error "+ error});
+                        reject({"code": 500, "data": "Internal Server Error "+ error});
                     });
                 }
                 else 
-                    reject({"code": res.statusCode, "message": res.statusMessage});
+                    reject({"code": res.statusCode, "data": res.statusMessage});
             });
     
             formData.pipe(req);

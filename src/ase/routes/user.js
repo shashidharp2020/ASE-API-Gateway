@@ -1,16 +1,18 @@
 const express = require("express");
 const router = express.Router();
-const accountsController = require("../controllers/accountsController");
+const userController = require("../controllers/userController");
 const validationMsgs = require("../../middleware/validate-request-schema");
 const schemas = require("../../validation-schema/validationSchemas");
+const tokenValidation = require("../../middleware/tokenValidation");
+
 /**
  * @swagger
- * /accounts:
+ * /user:
  *   get:
- *     summary: List all accounts.
- *     description: List all accounts present in the AppScan system.
+ *     summary: List all user accounts.
+ *     description: List all user accounts present in the AppScan system.
  *     tags:
- *       - accounts
+ *       - user
  *     parameters:
  *       - in: header
  *         name: auth-token
@@ -29,53 +31,49 @@ const schemas = require("../../validation-schema/validationSchemas");
  *         description: An unknown error has occured.
  */
 
-router.get("/", accountsController.getAllAccounts);
+router.get("/", tokenValidation.validateToken, userController.getAllUserAccounts);
 
 /**
  * @swagger
- * /accounts/getAccountByName:
+ * /user/{userId}:
+ *   get:
+ *     summary: Get user account information.
+ *     description: Get user account information for the specified account Id.
+ *     tags:
+ *       - user
+ *     parameters:
+ *       - in: header
+ *         name: auth-token
+ *         required: true
+ *         description: Provide the token returned by /login API in the format "bearer auth-token"
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Successful
+ *       400:
+ *         description: Wrong input
+ *       403:
+ *         description: Invalid token or user does not exist.
+ *       500:
+ *         description: An unknown error has occured.
+ */
+
+router.get("/:userId", tokenValidation.validateToken, userController.getUserAccount);
+
+/**
+ * @swagger
+ * /user:
  *   post:
- *     summary: Get account information.
- *     description: Get account information of the specified account name.
- *     tags:
- *       - accounts
- *     parameters:
- *       - in: header
- *         name: auth-token
- *         required: true
- *         description: Provide the token returned by /login API in the format "bearer auth-token"
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               account_name:
- *                 type: string
- *     responses:
- *       200:
- *         description: Successful
- *       400:
- *         description: Wrong input
- *       403:
- *         description: Invalid token or user does not exist.
- *       500:
- *         description: An unknown error has occured.
- */
-
-router.post("/getAccountByName", accountsController.getAccount);
-
-/**
- * @swagger
- * /accounts:
- *   put:
  *     summary: Create an account.
  *     description: Create an account with the details provided.
  *     tags:
- *       - accounts
+ *       - user
  *     parameters:
  *       - in: header
  *         name: auth-token
@@ -90,21 +88,16 @@ router.post("/getAccountByName", accountsController.getAccount);
  *           schema:
  *             type: object
  *             properties:
- *               account_name:
+ *               userName:
  *                 type: string
  *                 required: true
- *               entitlement_id:
+ *               userTypeId:
  *                 type: integer
  *                 required: true
  *               email:
  *                 type: string
- *               first_name:
+ *               fullName:
  *                 type: string
- *               middle_name:
- *                 type: string
- *               last_name:
- *                 type: string
- *                 required: true
  *     responses:
  *       200:
  *         description: Successful
@@ -118,16 +111,16 @@ router.post("/getAccountByName", accountsController.getAccount);
  *         description: An unknown error has occured.
  */
 
-router.put("/", schemas.accountCreate, validationMsgs.validateRequestSchema, accountsController.createAccount);
+router.post("/", tokenValidation.validateToken, schemas.accountCreate, validationMsgs.validateRequestSchema, userController.createUserAccount);
 
 /**
  * @swagger
- * /accounts/update:
+ * /user/{userId}:
  *   put:
- *     summary: Update an account.
- *     description: Update an account with the details provided.
+ *     summary: Edit an account.
+ *     description: Edit an account with the details provided.
  *     tags:
- *       - accounts
+ *       - user
  *     parameters:
  *       - in: header
  *         name: auth-token
@@ -136,7 +129,7 @@ router.put("/", schemas.accountCreate, validationMsgs.validateRequestSchema, acc
  *         schema:
  *           type: string
  *       - in: path
- *         name: accountid
+ *         name: userId
  *         required: true
  *         schema:
  *           type: integer
@@ -147,21 +140,13 @@ router.put("/", schemas.accountCreate, validationMsgs.validateRequestSchema, acc
  *           schema:
  *             type: object
  *             properties:
- *               account_name:
- *                 type: string
- *                 required: true
- *               entitlement_name:
- *                 type: string
+ *               userTypeId:
+ *                 type: integer
  *                 required: true
  *               email:
  *                 type: string
- *               first_name:
+ *               fullName:
  *                 type: string
- *               middle_name:
- *                 type: string
- *               last_name:
- *                 type: string
- *                 required: true
  *     responses:
  *       200:
  *         description: Successful
@@ -173,16 +158,16 @@ router.put("/", schemas.accountCreate, validationMsgs.validateRequestSchema, acc
  *         description: An unknown error has occured.
  */
 
-router.put("/update", schemas.accountUpdate, validationMsgs.validateRequestSchema, accountsController.updateAccount);
+router.put("/:userId", tokenValidation.validateToken, schemas.accountUpdate, validationMsgs.validateRequestSchema, userController.updateUserAccount);
 
 /**
  * @swagger
- * /accounts/enable:
+ * /user/enable/{userId}:
  *   put:
  *     summary: Enable an account.
  *     description: Enable an account.
  *     tags:
- *       - accounts
+ *       - user
  *     parameters:
  *       - in: header
  *         name: auth-token
@@ -190,15 +175,11 @@ router.put("/update", schemas.accountUpdate, validationMsgs.validateRequestSchem
  *         description: Provide the token returned by /login API in the format "bearer auth-token"
  *         schema:
  *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               account_name:
- *                 type: string
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
  *         description: Successful
@@ -210,16 +191,16 @@ router.put("/update", schemas.accountUpdate, validationMsgs.validateRequestSchem
  *         description: An unknown error has occured.
  */
 
-router.put("/enable", schemas.account_name, validationMsgs.validateRequestSchema, accountsController.enableAccount);
+router.put("/enable/:userId", tokenValidation.validateToken, schemas.userId, validationMsgs.validateRequestSchema, userController.enableUserAccount);
 
 /**
  * @swagger
- * /accounts/disable:
+ * /user/disable/{userId}:
  *   put:
- *     summary: Disable an account.
- *     description: Disable an account.
+ *     summary: Disable an user account.
+ *     description: Disable an user account.
  *     tags:
- *       - accounts
+ *       - user
  *     parameters:
  *       - in: header
  *         name: auth-token
@@ -227,15 +208,11 @@ router.put("/enable", schemas.account_name, validationMsgs.validateRequestSchema
  *         description: Provide the token returned by /login API in the format "bearer auth-token"
  *         schema:
  *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               account_name:
- *                 type: string
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
  *         description: Successful
@@ -247,16 +224,16 @@ router.put("/enable", schemas.account_name, validationMsgs.validateRequestSchema
  *         description: An unknown error has occured.
  */
 
-router.put("/disable", schemas.account_name, validationMsgs.validateRequestSchema, accountsController.disableAccount);
+router.put("/disable/:userId", tokenValidation.validateToken, schemas.userId, validationMsgs.validateRequestSchema, userController.disableUserAccount);
 
 /**
  * @swagger
- * /accounts/delete:
+ * /user/delete/{userId}:
  *   put:
- *     summary: Delete an account.
- *     description: Delete an account.
+ *     summary: Delete an user account.
+ *     description: Delete an user account.
  *     tags:
- *       - accounts
+ *       - user
  *     parameters:
  *       - in: header
  *         name: auth-token
@@ -264,15 +241,11 @@ router.put("/disable", schemas.account_name, validationMsgs.validateRequestSchem
  *         description: Provide the token returned by /login API in the format "bearer auth-token"
  *         schema:
  *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               account_name:
- *                 type: string
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
  *         description: Successful
@@ -284,6 +257,6 @@ router.put("/disable", schemas.account_name, validationMsgs.validateRequestSchem
  *         description: An unknown error has occured.
  */
 
-router.put("/:accountid", schemas.account_name, validationMsgs.validateRequestSchema, accountsController.deleteAccount);
+router.put("/delete/:userId", tokenValidation.validateToken, schemas.userId, validationMsgs.validateRequestSchema, userController.deleteUserAccount);
 
 module.exports = router;
