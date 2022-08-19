@@ -1,42 +1,13 @@
 const constants = require('./constants');
 const https = require("https");
+const http = require("http");
 const FormData = require("form-data");
 const logger = require('node-windows/lib/eventlog');
+const axios = require('axios').default;
 
 var methods = {};
-methods.resolveFullName = function(fullName) {
-    var userObject = {};
-    userObject[constants.LAST_NAME] = "";
-    userObject[constants.FIRST_NAME] = "";
-    userObject[constants.MIDDLE_NAME] = "";
 
-    if(fullName.includes(", ")) {
-        const array1 = fullName.split(", ");
-        userObject[constants.LAST_NAME] = array1[0];
-        
-        const array2 = array1[1].split(" ");
-        userObject[constants.FIRST_NAME] = array2[0];    
-        userObject[constants.MIDDLE_NAME] = (typeof array2[1] != 'undefined')? array2[1] : "";
-    }
-    else {
-        userObject[constants.LAST_NAME] = fullName;    
-    }
-
-    return userObject;
-}
-
-methods.constuctFullName = (first_name, middle_name, last_name) => {
-    if (typeof first_name === 'undefined' || first_name.length===0)
-        return null;
-    else if (typeof last_name === 'undefined' || last_name.length===0)    
-        return null;
-    else if (typeof middle_name === 'undefined' || middle_name.length===0)        
-        return last_name+", "+first_name;
-    else 
-        return last_name+", "+first_name+" "+middle_name;
-}
-
-methods.httpOption = function(token, method, url, dataLength, etag) {
+methods.httpASEOption = function(token, method, url, dataLength, etag) {
     return {
         hostname: process.env.ASE_HOSTNAME,
         port: process.env.ASE_PORT,
@@ -53,9 +24,25 @@ methods.httpOption = function(token, method, url, dataLength, etag) {
     };
 }
 
+// methods.httpJiraOption = function(token, method, url, dataLength) {
+//     return {
+//         hostname: process.env.JIRA_HOSTNAME,
+//         port: process.env.JIRA_PORT,
+//         path: url,
+//         rejectUnauthorized: (process.env.REJECT_UNAUTHORIZED==='true'),
+//         method: method,
+//         headers: {
+//           'Content-Type': 'application/json',
+//           'Content-Length': typeof dataLength==='undefined' ? 0 : dataLength,
+//           'Authorization': 'Bearer '+token
+//         }
+//     };
+// }
+
+
 methods.httpCall = function(method, token, url, data, etag) {
     const dataLength = data ? data.length : 0; 
-    const httpOptions = methods.httpOption(token, method, url, dataLength, etag);
+    const httpOptions = methods.httpASEOption(token, method, url, dataLength, etag);
     return new Promise((resolve, reject) => {
         const req = https.request(httpOptions, (res) => {
             if (res.statusCode >= 200 && res.statusCode <= 299) {
@@ -84,6 +71,33 @@ methods.httpCall = function(method, token, url, data, etag) {
         if((method==="POST" || method==="PUT") && dataLength > 0) req.write(data);
         req.end();
     });
+}
+
+jiraConfig = function(method, token, url, data) {
+    return {
+        method: method,
+        url: url,
+        data: data,        
+        headers: {
+            'Authorization': 'Bearer '+token, 
+            'Content-Type': 'application/json'
+        }
+    };
+}
+
+// getHeaders = (token) => {
+//     return {
+//         headers: {
+//             "Content-Type": "application/json",
+//             "Authorization": token
+//         }
+//     }
+// };
+
+methods.httpJiraCall = async (method, token, url, data) => {
+    const config = await jiraConfig(method, token, url, data);
+    const result = await axios(config);
+    return {"code": result.status, "data": result.data};
 }
 
 

@@ -104,7 +104,7 @@ methods.deleteAccount = async (req, res) => {
 	const account = accounts.find((act) => act[constants.ACCOUNT_NAME] === accountName);
 	if (!account) return res.status(404).json({ message: "Account does not exist." });
 
-	const options = util.httpOption(token, "DELETE", constants.ASE_CONSOLEUSERS + account[constants.ACCOUNT_ID]);
+	const options = util.httpASEOption(token, "DELETE", constants.ASE_CONSOLEUSERS + account[constants.ACCOUNT_ID]);
 
 	try {
 		const req1 = https.request(options, (res1) => {

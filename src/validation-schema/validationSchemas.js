@@ -25,7 +25,17 @@ schemas.createUserType = [schemas.userTypeName, schemas.userTypeDesc, schemas.pe
 //////////////////
 schemas.jobId = param("jobId").isInt().isLength({ min: 1, max: 6 }).withMessage(constants.INVALID_JOB_ID);
 schemas.appId = param("appId").isInt().isLength({ min: 1, max: 6 }).withMessage(constants.INVALID_APP_ID);
+schemas.issueId = param("issueId").isInt().isLength({ min: 1, max: 6 }).withMessage(constants.INVALID_ISSUE_ID);
 schemas.reportpackId = param("reportpackId").isInt().isLength({ min: 1, max: 6 }).withMessage(constants.INVALID_REPORTPACK_ID);
 schemas.jobActionId = param("actionId").isInt({ min:1, max: 4}).withMessage(constants.INVALID_JOB_ACTION_ID);
 
+schemas.keyId = body("keyId").isString({min:4, max:50}).withMessage(constants.INVALID_KEYID);
+schemas.keySecret = body("keySecret").isString({min:4, max:50}).withMessage(constants.INVALID_KEYSECRET);
+schemas.accessToken = body("accessToken").isString({min:4, max:50}).withMessage(constants.INVALID_ACCESSTOKEN);
+schemas.jiraLogin = [schemas.keyId, schemas.keySecret, schemas.accessToken];
+
+schemas.adminEmail = body('adminEmail').isEmail().withMessage(constants.INVALID_ADMIN_EMAIL);
+schemas.adminPassword = body('adminPassword').isLength({min:8, max:100}).withMessage(constants.INVALID_ADMIN_PASSWORD);
+schemas.igwLogin = [schemas.adminEmail, schemas.adminPassword];
+schemas.updateIssue = [schemas.appId, schemas.issueId];
 module.exports = schemas;

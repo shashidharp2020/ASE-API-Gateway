@@ -7,64 +7,10 @@ const jobService = require("../service/jobService");
 var methods = {};
 
 methods.getIssuesOfJob = async (req, res) => {
-    const jobId = req.params.jobId;
     const traffic = (req.query.traffic != 'undefined') ? req.query.traffic : false;
     try {
-        //const issues = await issueService.getIssuesOfJob(jobId);
-        const reportpacksResult = await jobService.getReportPacks(jobId, req.token);
-        const reportpacks = reportpacksResult.data;
-        var reportPackId = (reportpacks) ? reportpacks[0].reportPackId : undefined;
-        if(!reportPackId) {
-            logger.error("No reportpacks available for jobId "+jobId);
-            return res.status(404).send("Resource is not available.");
-        }
-        
-        const reportsResult = await jobService.getReportsInReportPack(reportPackId, req.token);
-        const reportsObj = reportsResult.data;
 
-        if(!reportsObj.reports.report) {
-            logger.error("No reports available for reportpack id "+reportPackId);
-            return res.status(404).send("Resource is not available.");
-        }
-        var reportId;
-        reportsObj.reports.report.forEach(element => {
-            if (element.name === "Security Issues") reportId = element.id;
-        })
-
-        if(!reportId) return res.status(404).send("Resource is not available.");
-
-        const issuesResult = await jobService.getIssuesOfReport(reportId, req.token);
-        const issues = (!issuesResult.data["wf-security-issues"]) ? [] : issuesResult.data["wf-security-issues"].issue;
-        for(var i=0; i<issues.length; i++) {
-        //issues.forEach(async element => {
-            var element  = issues[i];
-            element["issue-id"] = element["issue-id"].content;
-            if (traffic==='true'){
-                const issueTraffic = await jobService.getIssueTrafficData(reportId, element["issue-id"], req.token);
-
-                try {
-                    if (issueTraffic.data["security-issue"]["issue-details"].variants.variant.reasoning["validation-infos"]["validation-info"][0])
-                        element["reasoning"] = issueTraffic.data["security-issue"]["issue-details"].variants.variant.reasoning["validation-infos"]["validation-info"][0].content;
-                } catch (error) {
-                    console.log(error);
-                }
-
-                try {
-                    if (issueTraffic.data["security-issue"]["issue-details"].variants.variant.traffic["original-http-traffic"].content)
-                    element["original-http-traffic"] = issueTraffic.data["security-issue"]["issue-details"].variants.variant.traffic["original-http-traffic"].content;
-                } catch (error) {
-                    console.log(error);
-                }
-
-                try {
-                    if (issueTraffic.data["security-issue"]["issue-details"].variants.variant.traffic["test-http-traffic"].content)
-                    element["test-http-traffic"] = issueTraffic.data["security-issue"]["issue-details"].variants.variant.traffic["test-http-traffic"].content;
-                } catch(error) {
-                    console.log(error);
-                }
-            }
-        }
-
+        const issues  = await issueService.getIssuesOfJobThroughReports(req.params.jobId, req.token, traffic);
         return res.status(200).json(issues);
     }
     catch(error) {
@@ -91,5 +37,48 @@ methods.getIssuesOfApplication = async (req, res) => {
     }
 }
 
+methods.updateIssue = async (req, res) => {
+    const appId = req.params.appId;
+    const issueId = req.params.issueId;
+    const attributes = (req.params.attributes) ? req.params.attributes : [];
+
+    try {
+        var result = await issueService.getIssueDetails(appId, issueId, req.token);
+        var issue = result.data;
+        if(result.code === 200){
+            var data = {};
+            data["appReleaseId"] = appId;
+            data["lastUpdated"] = issue.lastUpdated;
+            var attributeArray = [];
+            for (var i=0; i<attributes.length; i++){
+                var attribute = {};
+                attribute["name"] = attributes[i].name;
+                attribute["value"] = [attributes[i].value];
+                attributeArray.push(attribute);
+            }
+            data["attributeCollection"]["attributeArray"] = attributeArray;
+            console.log(JSON.stringify(data, null, 4));
+            const updateIssueResult = await issueService.updateIssue(issueId, data, token);
+            return res.status(updateIssueResult.code).json(updateIssueResult.data); 
+        }        
+    } catch (error) {
+        logger.error("Failed to update the issue of an application: " + error);
+        return res.status(500).send("Failed to update the issue of an application");        
+    }
+
+}
+
+methods.getIssue = async (req, res) => {
+    const appId = req.params.appId;
+    const issueId = req.params.issueId;
+
+    try {
+        var result = await issueService.getIssueDetails(appId, issueId, req.token);
+        res.status(result.code).json(result.data);
+    } catch (error) {
+        logger.error(`Fetching issue details failed for the issueId ${issueId} with an error ${error}`);
+        return res.status(500).send("Failed to get issue attributes");        
+    }
+}
 
 module.exports = methods;

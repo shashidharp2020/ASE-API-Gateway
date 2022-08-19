@@ -1,4 +1,4 @@
-module.exports = Object.freeze({
+var constants = {
 	//APP_LOG: 'logs/application.log',
 	//MAXLOGSIZE: 10485760,
 	//NUMBER_OF_BACKUPS: 3,
@@ -44,8 +44,6 @@ module.exports = Object.freeze({
 	ID: "id",
 	NAME: "name",
 	ASC_SESSION_ID: "asc_session_id",
-	KEYLOGIN_API_FAIL: "keylogin API failed. Possible wrong credentials",
-	KEYLOGIN_API_FAIL_ERROR: "keylogin API failed with this error :",
 	CONTEXT_API: "/api",
 	SAILPOINT_INTERFACE: "SailPointInterface",
 	SWAGGER_VERSION: "1.0.0",
@@ -67,6 +65,9 @@ module.exports = Object.freeze({
 	DESCRIPTION: "description",
 	REQUESTABLE: "requestable",
 	BIRTHRIGHT: "birthright",
+	INVALID_KEYID: "KeyId is not passed or invalid",
+	INVALID_KEYSECRET: "KeySecret is not passed or invalid",
+	INVALID_ACCESSTOKEN: "accessToken is not passed or invalid",
 
 	//ASE APIs
 	ASE_CONSOLEUSERS: "/api/consoleusers/",
@@ -107,6 +108,8 @@ module.exports = Object.freeze({
 	ASE_RUNNING_JOB_CHANGE_STATUS: "/api/folderitems/{JOBID}",
 	ASE_ISSUES_APPLICATION: "/api/issues?query=Application%20Name%3D{APPNAME}&compactResponse=false",
 	ASE_APPLICATION_DETAILS: "/api/applications/{APPID}",
+	ASE_ISSUE_DETAILS: "/api/issues/{ISSUEID}/application/{APPID}/",
+	ASE_UPDATE_ISSUE: "/api/issues/{ISSUEID}/",
 	ASE_USER_TYPES: "/api/usertypes",
 	ASE_DELETE_USER_TYPE: "/api/usertypes/deleteUserType/{USERTYPEID}",
 	ASE_CREATE_USER_TYPE: "/api/usertypes/createUserType",
@@ -115,9 +118,28 @@ module.exports = Object.freeze({
 	ASE_JOB_SEARCH: "/api/jobs/search",
 	
 	INVALID_JOB_ID: "Invalid Scan Job Id",
+	INVALID_ISSUE_ID: "Invalid Issue Id",
 	INVALID_APP_ID: "Invalid application Id",
 	INVALID_REPORTPACK_ID: "Invalid reportpack Id",
 	INVALID_JOB_ACTION_ID: "Invalid Scan Job Action Id",
 
 	ASE_API_GATEWAY: "ASE API Gateway",
-});
+
+	JIRA_PING_API: "/rest/api/latest/mypermissions",
+	JIRA_CREATE_TICKET: "/rest/api/latest/issue",
+
+	TOKEN: "token",
+	DTS_TOKEN: "dtsToken",
+	keyId: "keyId",
+	keySecret: "keySecret",
+
+	INVALID_ADMIN_EMAIL: "Invalid admin email",
+	INVALID_ADMIN_PASSWORD: "Invalid admin password",
+	ERR_WRONG_CREDENTIALS: "Wrong Credentials",
+	HASHING_SALT: '1ffcd164fb8efa56604a4425d14c4455',	
+	DTS_JIRA: "JIRA",
+	DTS: "DTS",
+	PROVIDERS: ["JIRA"],
+};
+
+module.exports = Object.freeze( constants );
