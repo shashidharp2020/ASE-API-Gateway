@@ -1,0 +1,23 @@
+{
+    "maxissues": 1,
+    "issuestates": "New,Open",
+    "issueseverities": "High",
+    "imurl": "http://localhost:8888",
+    "imaccesstoken": "MjIzNDgzMTQyOTA0OlB8SsOIBhLYo7TFTIrvpj+FoDae",
+    "improjectkey": "ASE1",
+    "imissuetype": "Task",
+    "imsummary": "Security issue: %IssueType% found by %Scanner%",
+    "severitymap": {
+        "High": "High",
+        "Medium": "Medium",
+        "Low": "Low",
+        "Informational": "Low"
+    },
+    "attributeMappings": [
+        {
+            "imAttr": "labels",
+            "appScanAttr": "Domain",
+            "type": "Array"
+        }
+    ]
+}
