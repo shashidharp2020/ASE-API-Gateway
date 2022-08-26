@@ -91,37 +91,37 @@ methods.deleteUserAccount = async (req, res) => {
 	}	
 };
 
-methods.deleteAccount = async (req, res) => {
-	const token = jsonwebtoken.getTokenData(req);
+// methods.deleteAccount = async (req, res) => {
+// 	const token = jsonwebtoken.getTokenData(req);
 
-	if (token == null || token.length === 0) {
-		logger.error("deleteAccount - " + constants.TOKEN_ABSENT);
-		return res.status(403).json({ message: constants.TOKEN_ABSENT });
-	}
+// 	if (token == null || token.length === 0) {
+// 		logger.error("deleteAccount - " + constants.TOKEN_ABSENT);
+// 		return res.status(403).json({ message: constants.TOKEN_ABSENT });
+// 	}
 
-	const accounts = await userService.getAllAccounts(token);
-	const accountName = req.body.account_name;
-	const account = accounts.find((act) => act[constants.ACCOUNT_NAME] === accountName);
-	if (!account) return res.status(404).json({ message: "Account does not exist." });
+// 	const accounts = await userService.getAllAccounts(token);
+// 	const accountName = req.body.account_name;
+// 	const account = accounts.find((act) => act[constants.ACCOUNT_NAME] === accountName);
+// 	if (!account) return res.status(404).json({ message: "Account does not exist." });
 
-	const options = util.httpASEOption(token, "DELETE", constants.ASE_CONSOLEUSERS + account[constants.ACCOUNT_ID]);
+// 	const options = util.httpASEOption(token, "DELETE", constants.ASE_CONSOLEUSERS + account[constants.ACCOUNT_ID]);
 
-	try {
-		const req1 = https.request(options, (res1) => {
-			if (res1.statusCode === 200) {
-				logger.info("deleteAccount: Successfully deleted the account " + accountName);
-				return res.status(200).json({ message: constants.SUCCESS });
-			} else {
-				logger.error("deleteAccount: Failed to delete the account " + accountName + " - " + res1.statusCode + " : " + res1.statusMessage);
-				return res.status(res1.statusCode).json({ message: res1.statusMessage });
-			}
-		});
+// 	try {
+// 		const req1 = https.request(options, (res1) => {
+// 			if (res1.statusCode === 200) {
+// 				logger.info("deleteAccount: Successfully deleted the account " + accountName);
+// 				return res.status(200).json({ message: constants.SUCCESS });
+// 			} else {
+// 				logger.error("deleteAccount: Failed to delete the account " + accountName + " - " + res1.statusCode + " : " + res1.statusMessage);
+// 				return res.status(res1.statusCode).json({ message: res1.statusMessage });
+// 			}
+// 		});
 
-		req1.end();
-	} catch (error) {
-		logger.error("deleteAccount: Failed to delete the account " + accountName + " - " + error);
-		res.status(500).json({ message: error });
-	}
-};
+// 		req1.end();
+// 	} catch (error) {
+// 		logger.error("deleteAccount: Failed to delete the account " + accountName + " - " + error);
+// 		res.status(500).json({ message: error });
+// 	}
+// };
 
 module.exports = methods;

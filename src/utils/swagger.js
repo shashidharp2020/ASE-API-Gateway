@@ -24,7 +24,8 @@ module.exports = function(app){
 				}
 			  ]
 		},
-		apis: ["./src/ase/routes/*.js","./src/IGW/routes/*.js"]
+		//apis: ["./src/ase/routes/*.js","./src/IGW/routes/*.js"]
+		apis: ["./src/IGW/routes/*.js"]
 		//apis: ["./src/scb/routes/*.js","./src/commons/routes/*.js"]
 	};
 

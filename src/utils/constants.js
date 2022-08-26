@@ -110,6 +110,7 @@ var constants = {
 	ASE_APPLICATION_DETAILS: "/api/applications/{APPID}",
 	ASE_ISSUE_DETAILS: "/api/issues/{ISSUEID}/application/{APPID}/",
 	ASE_UPDATE_ISSUE: "/api/issues/{ISSUEID}/",
+	ASE_GET_HTML_ISSUE_DETAILS: "/api/issues/details_v2?appId={APPID}&ids=[\"{ISSUEID}\"]",
 	ASE_USER_TYPES: "/api/usertypes",
 	ASE_DELETE_USER_TYPE: "/api/usertypes/deleteUserType/{USERTYPEID}",
 	ASE_CREATE_USER_TYPE: "/api/usertypes/createUserType",
@@ -126,6 +127,7 @@ var constants = {
 	ASE_API_GATEWAY: "ASE API Gateway",
 
 	JIRA_PING_API: "/rest/api/latest/mypermissions",
+	JIRA_ATTACH_FILE: "/rest/api/latest/issue/{JIRAID}/attachments",
 	JIRA_CREATE_TICKET: "/rest/api/latest/issue",
 
 	TOKEN: "token",

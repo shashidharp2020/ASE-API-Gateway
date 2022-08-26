@@ -57,5 +57,5 @@ app.use('/ase/api/igw', require('./src/IGW/routes/igw'));
 require('./src/utils/swagger')(app);
 
 logger.info(constants.SWAGGER_PAGE_URL+` https://`+hostname+`:`+process.env.SECURE_PORT+constants.SWAGGER_CONTEXT_URL); 
-
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 module.exports = app;

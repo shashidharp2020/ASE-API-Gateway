@@ -1,17 +1,17 @@
 var service = require('node-windows').Service;
-var fs = require('fs');
+const fs = require('fs');
 var path = require('path');
 const appFilePath = path.resolve(path.join(__dirname, 'server.js'));
 var cmdprogram = require('commander');
-const serviceName = "SailPointInterface";
+const serviceName = "IssueGateway";
 
-var sailPointInterfaceService = new service({
-    name: 'SailPointInterface',
+var issueGatewayService = new service({
+    name: 'IssueGateway',
     description: 'Interface to integrate SailPoint and AppScan',
     script: appFilePath
 });
 
-sailPointInterfaceService._directory =  path.resolve();
+issueGatewayService._directory =  path.resolve();
 
 cmdprogram
     .option('--install', 'Install the service')
@@ -24,14 +24,14 @@ if(cmdprogram.uninstall) {
         return console.log('The %s service is not installed.', serviceName);
     
     console.log('Uninstalling the %s service...', serviceName);
-    sailPointInterfaceService.uninstall();    
+    issueGatewayService.uninstall();    
 }
 else if(cmdprogram.install) {
     if (verifyServiceInstalled())
         return console.log('The %s service is already installed', serviceName);
 
     console.log('Installing the service %s ', serviceName);
-    sailPointInterfaceService.install();
+    issueGatewayService.install();
 }
 else 
     return cmdprogram.help();
@@ -57,18 +57,18 @@ function verifyServiceInstalled() {
 
 // Listen for the "install" event, which indicates the
 // process is available as a service.
-sailPointInterfaceService.on('install', function () {
+issueGatewayService.on('install', function () {
     if(verifyServiceInstalled())
         return console.log('The service %s is installed.', serviceName);
 });
 
 // Listen for the "uninstall" event, to uninstall service
-sailPointInterfaceService.on('uninstall', function () {
+issueGatewayService.on('uninstall', function () {
     if(!verifyServiceInstalled()) 
         return console.log('The service %s is uninstalled.', serviceName);
 });
 
 // Listen for the "uninstall" event, to uninstall service
-sailPointInterfaceService.on('error', function () {
+issueGatewayService.on('error', function () {
     return console.log('Failed to install the service - ' + error);
 });

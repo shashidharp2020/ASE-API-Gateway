@@ -3,15 +3,13 @@ const logger = log4js.getLogger("igwController");
 const jsonwebtoken = require("../../utils/jsonwebtoken");
 const constants = require("../../utils/constants");
 const igwService = require("../services/igwService");
-const jobService = require("../../ase/service/jobService");
 const issueService = require("../../ase/service/issueService");
-const authService = require('../../ase/service/authService');
+const imConfigService = require("../services/imConfigService");
 const global = require('../../utils/global');
-
 var crypto = require('crypto'); 
-var fs = require('fs');
-const { Console } = require("console");
+const fs = require('fs');
 var CronJob = require('cron').CronJob;
+
 
 var methods = {};
 
@@ -68,7 +66,7 @@ methods.createConfig = (req, res) => {
 
 methods.getConfig = async (req, res) => {
     try {
-        const imConfig = await igwService.getIMConfig(req.params.providerid); 
+        const imConfig = await imConfigService.getImConfigObject(req.params.providerid);
 
         if (imConfig && imConfig.length>0) return res.status(200).json(JSON.parse(imConfig));
         else {
@@ -77,7 +75,7 @@ methods.getConfig = async (req, res) => {
         }
     }
     catch (err) {
-        logger.error(`Reading the config for the provider ${req.params.providerId} failed with error ${error}`);
+        logger.error(`Reading the config for the provider ${req.params.providerId} failed with error ${err}`);
         return res.status(500).json(err);
     }
 }
@@ -89,8 +87,14 @@ methods.startSync = async (req, res) => {
     if(typeof jobInMap != 'undefined')
         return res.status(409).send(`Job for the provider ${providerId} already exists`);    
     
-    //var pattern = '1 1 1 */'+req.params.syncinterval+' * *';
-    var pattern = '1 * * * * *';
+    var oldDateObj = new Date();
+    var newDateObj = new Date();
+    newDateObj.setTime(oldDateObj.getTime() + (1 * 60 * 1000));
+    console.log(newDateObj);
+
+    var pattern = '1 '+newDateObj.getMinutes()+' '+newDateObj.getHours()+' */'+req.params.syncinterval+' * *';
+
+
     console.log("pattern = " + pattern);
 
     var job = new CronJob(
@@ -99,7 +103,10 @@ methods.startSync = async (req, res) => {
             startCron(providerId, req.params.syncinterval);
         },
         null,
-        false
+        false,
+        null,
+        null,
+        true
     );
     
     job.start();
@@ -119,50 +126,55 @@ methods.stopSync = async (req, res) => {
         return res.status(404).send(`Job for the provider ${req.params.providerid} is not found`);
 }
 
-startCron = async (providerId, syncinterval) => {
+aseLogin = async () => {
     var aseToken;
     try {
         aseToken = await igwService.aseLogin();
-        if (aseToken === 'undefined') {
-            logger.error(`Failed to login to the AppScan. Sync failed.`);
-            return;
-        }        
+        if (typeof aseToken === 'undefined') logger.error(`Failed to login to the AppScan.`);
     } catch (error) {
-        logger.error(`Failed to login to the AppScan. Sync failed. ${error}`);
-        return;
+        logger.error(`Login to AppScan failed with the error ${error}`);
     }
+    return aseToken;
+}
 
+getCompletedScans = async(period, aseToken) => {
     var completedScans;
     try {
-        const result = await igwService.getCompletedScans(syncinterval, aseToken); 
-        completedScans = (result.data)?result.data:[];
-        logger.info(`Found ${completedScans.length} completed scans in the system`);
-        if (result.code != 200) {
-            logger.error(`Failed to fetch completed scans.`);
-            return;
-        }        
+        const result = await igwService.getCompletedScans(period, aseToken); 
+        if (result.code < 200 || result.code > 299) logger.error(`Failed to fetch completed scans. ${result.data}`);
+        else {
+            completedScans = (result.data) ? result.data: [];
+            logger.info(`Found ${completedScans.length} completed scans in the last ${period} days.`);
+        }
     } catch (error) {
         logger.error(`Failed to fetch completed scans. ${error}`);
-        return;
     }
+    return completedScans;
+}
 
-    var output = [];
+startCron = async (providerId, syncinterval) => {
+    const aseToken = await aseLogin();
+    if (typeof aseToken === 'undefined') return;
+
+    const completedScans = await getCompletedScans(syncinterval, aseToken);
+    if (typeof completedScans === 'undefined') return;
+
+    const output = [];
     try {
         for(var i=0; i<completedScans.length; i++) {
             const scan = completedScans[i];
             if (scan.applicationId){
-                const issuesData = await methods.pushIssuesOfScan(scan.id, scan.applicationId, aseToken, providerId);
-                output.push(issuesData);
+                const issuesData = await pushIssuesOfScan(scan.id, scan.applicationId, aseToken, providerId);
+                if (typeof issuesData != 'undefined') output.push(issuesData);
             } 
             else logger.info(`Scan ${scan.id} is not associated with the application. Issues of this application cannot be pushed to Issue Management System`);        
         }
+        jobResults.set(providerId, output);
+        logger.info(JSON.stringify(output, null, 4));        
     }
     catch(err) {
         logger.error(`Pushing issues to Issue Management System failed ${err}`);
-        return ;   
     }
-    jobResults.set(providerId, output);
-    logger.info(JSON.stringify(output, null, 4));
     return;
 }
 
@@ -175,69 +187,156 @@ methods.getResults = async (req, res) => {
         return res.status(404).send(`Results for the provider ${req.params.providerid} is not found`);
 }
 
-methods.pushIssuesOfScan = async (scanId, applicationId, token, providerId) => {
-    const issues = await issueService.getIssuesOfJobThroughReports(scanId, token, true);
-    logger.info(`${issues.length} issues found in the scan ${scanId} and the scan is associated to the application ${applicationId}`);
-    const issuesData = await pushIssuesToIm(providerId, applicationId, issues, token);
-    issuesData["scanId"]=scanId;
-    issuesData["syncTime"]=new Date();
-    return issuesData;
-}
-
-methods.pushIssuesOfApplication = async (applicationId, token, providerId) => {
-    const issues = await issueService.getIssuesOfApplication(applicationId, token);
-    logger.info(`${issues.length} issues found in the application ${applicationId}`);
-    const issuesData = await pushIssuesToIm(providerId, applicationId, issues, token);
-    issuesData["applicationId"]=applicationId;
-    return issuesData;
-}
-
-pushIssuesToIm = async (providerId, applicationId, issues, token) => {
-    var imConfig = await getIMConfig(providerId);
-    imConfig["providerId"] = providerId;
-    const filteredIssues = await igwService.filterIssues(issues, applicationId, imConfig, token);
-    logger.info(`Issues count after filtering is ${filteredIssues.length}`);
-    var result = await igwService.createImTickets(filteredIssues, imConfig);
-
-    var successArray = result.success;
-    if (typeof successArray === 'undefined') return result;
-    for(var j=0; j<successArray.length; j++){
-        var issueObj = successArray[j];
-        const issue = filteredIssues.filter(issue => issue.issueId===issueObj.issueId);
-        //Update External Id
-        var data = {};
-        data["appReleaseId"] = applicationId;
-        data["lastUpdated"] = issue[0].lastUpdated;
-        var attributeArray = [];
-        var attribute = {};
-        attribute["name"] = "External Id";
-        attribute["value"] = [issueObj.ticket];
-        attributeArray.push(attribute);
-        var attributeCollection = {};
-        attributeCollection["attributeArray"] = attributeArray;
-        data["attributeCollection"] = attributeCollection;
-        const updateResult = await issueService.updateIssue(issueObj.issueId, data, token, issue[0].etag);
-        if(updateResult.code != 200)
-            issueObj["error"] = updateResult.data;
+getIssuesOfApplication = async (applicationId, aseToken) => {
+    var issues = [];
+    try {
+        const result = await issueService.getIssuesOfApplication(applicationId, aseToken);
+        if(result.code === 200) issues = result.data;        
+        else logger.error(`Failed to get issues of application ${applicationId}`);
+    } catch (error) {
+        logger.error(`Fetching issues of application ${applicationId} failed with error ${error}`);
     }
+    return issues;
+}
 
+pushIssuesOfScan = async (scanId, applicationId, aseToken, providerId) => {
+    const appIssues = await getIssuesOfApplication(applicationId, aseToken);
+    const scanIssues = appIssues.filter(issue => issue["Scan Name"].replaceAll("&#40;", "(").replaceAll("&#41;", ")").includes("("+scanId+")"));
+    logger.info(`${scanIssues.length} issues found in the scan ${scanId} and the scan is associated to the application ${applicationId}`);
+    const pushedIssuesResult = await pushIssuesToIm(providerId, applicationId, scanIssues, aseToken);
+    pushedIssuesResult["scanId"]=scanId;
+    pushedIssuesResult["syncTime"]=new Date();
+    return pushedIssuesResult;
+}
+
+pushIssuesOfApplication = async (applicationId, aseToken, providerId) => {
+    const issues = await getIssuesOfApplication(applicationId, aseToken);
+    logger.info(`${issues.length} issues found in the application ${applicationId}`);
+    const pushedIssuesResult = await pushIssuesToIm(providerId, applicationId, issues, aseToken);
+    pushedIssuesResult["applicationId"]=applicationId;
+    pushedIssuesResult["syncTime"]=new Date();
+    return pushedIssuesResult;
+}
+
+createImTickets = async (filteredIssues, imConfig, providerId) => {
+    var result = [];
+    try {
+        result = await igwService.createImTickets(filteredIssues, imConfig, providerId);   
+        if(typeof result === 'undefined' || typeof result.success === 'undefined') result = [];
+    } catch (error) {
+        logger.error(`Creating tickets in the ${providerId} failed with error ${error}`);
+    }
     return result;
 }
 
-getIMConfig = async (providerId) => {
-    try {
-        const imConfig = await igwService.getIMConfig(providerId); 
-        if(!imConfig) {
-            logger.error(`Configuration does not exist for provider ${providerId}`);
-            return;
+pushIssuesToIm = async (providerId, applicationId, issues, aseToken) => {
+    var imConfig = await getIMConfig(providerId);
+    if(typeof imConfig === 'undefined') return;
+
+    const filteredIssues = await igwService.filterIssues(issues, imConfig);
+    logger.info(`Issues count after filtering is ${filteredIssues.length}`);
+
+    const imTicketsResult = await createImTickets(filteredIssues, imConfig, providerId);
+    
+    const successArray = (typeof imTicketsResult.success === 'undefined') ? [] : imTicketsResult.success;
+    for(var j=0; j<successArray.length; j++){
+        const issueObj = successArray[j];
+        const issueId = issueObj.issueId;
+        const imTicket = issueObj.ticket;
+
+        try {
+            await updateExternalId(applicationId, issueId, imTicket, aseToken);  
+        } catch (error) {
+            logger.error("Could not update the external Id of the issue for a ticket "+ error);
+            issueObj["updateExternalIdError"] = error;
         }
+
+        const downloadPath = `./temp/${applicationId}_${issueId}.zip`;
+        try {
+            await issueService.getHTMLIssueDetails(applicationId, issueId, downloadPath, aseToken);
+        } catch (error) {
+            logger.error(`Downloading HTML file having issue details failed for the issueId ${issueId} with an error ${error}`);
+            issueObj["attachIssueDataFileError"] = error;
+        }
+
+        try {
+            if (require("fs").existsSync(downloadPath)) await igwService.attachIssueDataFile(imTicket, downloadPath, imConfig, providerId);
+        } catch (error) {
+            logger.error(`Attaching data file for the issueId ${issueId} to ticket ${imTicket} failed with an error ${error}`);
+            issueObj["attachIssueDataFileError"] = error;
+        }
+
+        try {
+            if (require("fs").existsSync(downloadPath)) require("fs").rmSync(downloadPath);
+        } catch (error) {
+            logger.error(`Deleting the html data file for the issueId ${issueId} attached to ticket ${imTicket} failed with an error ${error}`);
+        }
+    }
+
+    return imTicketsResult;
+}
+
+getIssueDetails = async (applicationId, issueId, aseToken) => {
+    var issueData;
+    try {
+        const issueResults = await issueService.getIssueDetails(applicationId, issueId, aseToken);  
+        if (issueResults.code === 200 && issueResults.data !=='undefined') 
+            issueData = issueResults.data;
+        else
+            logger.error(`Fetching details of issue ${issueId} from application ${applicationId} failed with error ${issueResults.data}`);    
+    } catch (error) {
+        logger.error(`Fetching details of issue ${issueId} from application ${applicationId} failed with error ${error}`);
+    }
+    return issueData;
+}
+
+updateIssueAttribute = async (issueId, data, aseToken, etag) => {
+    var updateSuccessful = false;
+    try {
+        const updateResult = await issueService.updateIssue(issueId, data, aseToken, etag);    
+        if(updateResult.code != 200)
+            logger.error(`Updating attribute of issue ${issue} failed with error ${updateResult.data}`);
+        else 
+            updateSuccessful = true;    
+    } catch (error) {
+        logger.error(`Updating attribute of issue ${issue} failed with error ${error}`);
+    }
+    return updateSuccessful;
+}
+
+updateExternalId = async (applicationId, issueId, ticket, aseToken) => {
+    const issueData = await getIssueDetails(applicationId, issueId, aseToken);
+    if (typeof issueData === 'undefined') throw `Failed to fetch the details of issue ${issueId} from application ${applicationId}`;
+
+    var data = {};
+    data["lastUpdated"] = issueData.lastUpdated;
+    data["appReleaseId"] = applicationId;
+    var attributeArray = [];
+    var attribute = {};
+    attribute["name"] = "External Id";
+    attribute["value"] = [ticket];
+    attributeArray.push(attribute);
+    var attributeCollection = {};
+    attributeCollection["attributeArray"] = attributeArray;
+    data["attributeCollection"] = attributeCollection;
+    const isSuccess = await updateIssueAttribute(issueId, data, aseToken, issueData.etag);
+    if(!isSuccess)
+        throw `Failed to update the external Id for issue ${issueId} from application ${applicationId}`;
+}
+
+getIMConfig = async (providerId) => {
+    var imConfig;
+    try {
+        imConfig = await imConfigService.getImConfigObject(providerId);
+        if(typeof imConfig === 'undefined') 
+            logger.error(`Configuration does not exist for provider ${providerId}`);
         else 
             return await JSON.parse(imConfig);
     }
     catch(error) {
         logger.error(`Reading the configuration failed for the provider ${providerId} with errors ${error}`);
-        throw error;
     }
+    return imConfig;
 }
 
 module.exports = methods;

@@ -40,7 +40,7 @@ methods.createJob = async (req, res) => {
             return res.status(result.code).send(result.data);
         }
         else
-            output = result.data;
+            if (typeof result.data != 'undefined') output = result.data;
 
         await getReportPacks(scanInputData, output, errors);
         await updateScanJobConfiguration(scanInputData, output, errors);

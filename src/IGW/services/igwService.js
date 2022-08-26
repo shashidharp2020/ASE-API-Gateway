@@ -1,8 +1,8 @@
 const jobService = require("../../ase/service/jobService");
 const jiraService = require("../services/jiraService");
 const authService = require('../../ase/service/authService');
-const issueService = require('../../ase/service/issueService');
-var fs = require('fs').promises;
+const fsPromise = require('fs').promises;
+const fs = require('fs');
 var methods = {};
 const constants = require("../../utils/constants");
 const log4js = require("log4js");
@@ -31,55 +31,40 @@ methods.getCompletedScans = async (syncInterval, aseToken) => {
     return await jobService.searchJobs(queryString, aseToken);
 }
 
-methods.getIMConfig = async (providerId) => {
-
-    const imFilePath = './config/'+providerId+'.json';
-    
-    if (require('fs').existsSync(imFilePath))
-        return await fs.readFile(imFilePath, 'utf8'); 
-}
-
-methods.filterIssues = async (issues, applicationId, imConfig, token) => {
+methods.filterIssues = async (issues, imConfig) => {
     const issueStates = imConfig.issuestates;
     const issueSeverities = imConfig.issueseverities;
 
     var issueStatesArray = [];
     var issueSeveritiesArray = [];
     
-    if(issueStates) issueStatesArray = issueStates.split(",");
-    if(issueSeverities) issueSeveritiesArray = issueSeverities.split(",");   
-    
-    var stateFilteredIssues = [];
-    if (issueStatesArray.length > 0) stateFilteredIssues = issues.filter(issue => issueStatesArray.includes(issue["issue-status"]));
-        
-    var severityFilteredIssues = [];
-    if (issueSeveritiesArray.length > 0) severityFilteredIssues = stateFilteredIssues.filter(issue => issueSeveritiesArray.includes(issue["issue-severity"]));
+    if(typeof issueStates != 'undefined') issueStatesArray = issueStates.split(",");
+    if(typeof issueSeverities != 'undefined') issueSeveritiesArray = issueSeverities.split(",");   
     
     var filteredIssues = [];
-    for(var i=0; i<severityFilteredIssues.length; i++) {
-        var issue = severityFilteredIssues[i];
-        const issueResults = await issueService.getIssueDetails(applicationId, issue["issue-id"], token);
-        if (issueResults.code === 200) {
-            var issueDetails = issueResults.data;
-            if (typeof(issueDetails["External ID"])==='undefined' || issueDetails["External ID"].length === 0){
-                if(issue["reasoning"]) issueDetails["reasoning"] = issue["reasoning"];
-                if(issue["original-http-traffic"]) issueDetails["original-http-traffic"] = issue["original-http-traffic"];  
-                if(issue["test-http-traffic"]) issueDetails["test-http-traffic"] = issue["test-http-traffic"];  
-                filteredIssues.push(issueDetails);
-            }
-        }   
-    }
+    if (issueStatesArray.length > 0) filteredIssues = issues.filter(issue => issueStatesArray.includes(issue["Status"]));
+    if (issueSeveritiesArray.length > 0) filteredIssues = filteredIssues.filter(issue => issueSeveritiesArray.includes(issue["Severity"]));
+    filteredIssues = filteredIssues.filter(issue => (typeof(issue["External ID"]) === 'undefined' || issue["External ID"].length == 0)); 
 
-    const maxIssues = imConfig.maxissues;
-    return filteredIssues.slice(0,maxIssues);
+    const maxIssues = (typeof imConfig.maxissues != 'undefined') ? imConfig.maxissues : 10000;
+    filteredIssues = (typeof filteredIssues === 'undefined') ? [] : filteredIssues.slice(0,maxIssues);
+    return filteredIssues;
 }
 
-methods.createImTickets = async (filteredIssues, imConfig) => {
+methods.createImTickets = async (filteredIssues, imConfig, providerId) => {
     var result;
-    if(imConfig.providerId === constants.DTS_JIRA) 
+    if(providerId === constants.DTS_JIRA) 
         result = await jiraService.createTickets(filteredIssues, imConfig);
-    //console.log(JSON.stringify(result, null, 4));
+
     return result;
 }
 
+methods.attachIssueDataFile = async (ticket, downloadPath, imConfig, providerId) => {
+    var result;
+    if(providerId === constants.DTS_JIRA) {
+        result = await jiraService.attachIssueDataFile(ticket.split("/browse/")[1], downloadPath, imConfig);
+    }
+
+    return result;
+}
 module.exports = methods;

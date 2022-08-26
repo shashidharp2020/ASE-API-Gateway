@@ -1,7 +1,6 @@
 const log4js = require("log4js");
-const logger = log4js.getLogger("jobController");
+const logger = log4js.getLogger("issueController");
 const issueService = require("../service/issueService");
-const jobService = require("../service/jobService");
 
 
 var methods = {};
@@ -78,6 +77,22 @@ methods.getIssue = async (req, res) => {
     } catch (error) {
         logger.error(`Fetching issue details failed for the issueId ${issueId} with an error ${error}`);
         return res.status(500).send("Failed to get issue attributes");        
+    }
+}
+
+methods.getHTMLIssueDetails = async (req, res) => {
+    const appId = req.params.appId;
+    const issueId = req.params.issueId;
+
+    try {
+        const downloadPath = "./temp/"+issueId+".zip";
+        const result = await issueService.getHTMLIssueDetails(appId, issueId, downloadPath, req.token);
+        console.log("result ... "+result);
+        if (result) return res.download(downloadPath);
+        else res.status(500).send(`Failed to download HTML file having details of the issue ${issueId}`);
+    } catch (error) {
+        logger.error(`Downloading HTML file having issue details failed for the issueId ${issueId} with an error ${error}`);
+        return res.status(500).send(`Failed to download HTML file having details of the issue ${issueId}`);
     }
 }
 

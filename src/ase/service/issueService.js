@@ -144,4 +144,10 @@ methods.updateIssue = async (issueId, data, token, eTag) => {
     return await util.httpCall("PUT", token, url, JSON.stringify(data), eTag);
 }
 
+methods.getHTMLIssueDetails = async(appId, issueId, downloadPath, token) => {
+    const url = constants.ASE_GET_HTML_ISSUE_DETAILS.replace("{ISSUEID}", issueId).replace("{APPID}", appId);
+    return await util.downloadFile(url, downloadPath, token);
+}
+
+
 module.exports = methods;

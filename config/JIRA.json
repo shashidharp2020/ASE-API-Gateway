@@ -1,7 +1,7 @@
 {
     "maxissues": 1,
     "issuestates": "New,Open",
-    "issueseverities": "High",
+    "issueseverities": "High,Medium",
     "imurl": "http://localhost:8888",
     "imaccesstoken": "MjIzNDgzMTQyOTA0OlB8SsOIBhLYo7TFTIrvpj+FoDae",
     "improjectkey": "ASE1",

@@ -166,4 +166,41 @@ router.get("/application/:appId/issue/:issueId", tokenValidation.validateToken, 
 */ 
 router.put("/application/:appId/issue/:issueId", tokenValidation.validateToken, schemas.updateIssue, validationMsgs.validateRequestSchema, issueController.updateIssue);
 
+/**
+ * @swagger
+ * /issue/html/application/{appId}/issue/{issueId}:
+ *   get:
+ *     summary: Get the issue details in HTML file.
+ *     description: Get the issue details in HTML file.
+ *     tags: 
+ *       - issue
+ *     parameters:
+ *       - in: header
+ *         name: auth-token
+ *         required: true
+ *         description: Provide the token returned by /login API in the format "bearer auth-token"
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: appId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: issueId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       201:
+ *         description: Successful
+ *       400:
+ *         description: Wrong input
+ *       403:
+ *         description: Invalid token or user does not exist.
+ *       500:
+ *         description: An unknown error has occured.
+*/ 
+router.get("/html/application/:appId/issue/:issueId", tokenValidation.validateToken, schemas.updateIssue, validationMsgs.validateRequestSchema, issueController.getHTMLIssueDetails);
+
 module.exports = router;
