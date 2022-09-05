@@ -3,6 +3,7 @@ const constants = require("../../utils/constants");
 const log4js = require("log4js");
 const logger = log4js.getLogger("jiraService");
 const FormData = require("form-data");
+const cryptoService = require("../../../cryptoService");
 var methods = {};
 
 methods.jiraValidateToken = async (token) => {
@@ -20,7 +21,8 @@ methods.createTickets = async (issues, imConfigObject) => {
         const imPayload = await createPayload(issues[i], imConfigObject);
 
         try {
-            const imConfig = getConfig("POST", imConfigObject.imaccesstoken, imConfigObject.imurl+constants.JIRA_CREATE_TICKET, imPayload);
+            var basicToken = "Basic "+btoa(imConfigObject.imUserName+":"+cryptoService.decrypt(imConfigObject.imPassword));
+            const imConfig = getConfig("POST", basicToken, imConfigObject.imurl+constants.JIRA_CREATE_TICKET, imPayload);
             const result = await util.httpImCall(imConfig); 
 
             if (result.code === 201){
@@ -32,7 +34,7 @@ methods.createTickets = async (issues, imConfigObject) => {
                 logger.error(`Failed to create ticket for issue Id ${issues[i]["id"]} and the error is ${result.data}`);
             }
         } catch (error) {
-            logger.error(`Failed to create ticket for issue Id ${issues[i]["id"]} and the error is ${error}`);
+            logger.error(`))) Failed to create ticket for issue Id ${issues[i]["id"]} and the error is ${JSON.stringify(error.response.data)}`);
             failures.push({issueId: issues[i]["id"], errorMsg: error.message});
         }
     }
@@ -66,10 +68,11 @@ createPayload = async (issue, imConfigObject) => {
 methods.attachIssueDataFile = async (ticket, filePath, imConfigObject) => {
     const url = imConfigObject.imurl+constants.JIRA_ATTACH_FILE.replace("{JIRAID}",ticket);
     const formData = new FormData();
-    formData.append('file', require("fs").createReadStream(filePath));    
-    const imConfig = getConfig("POST", imConfigObject.imaccesstoken, url, formData);
+    formData.append('file', require("fs").createReadStream(filePath)); 
+    var basicToken = "Basic "+btoa(imConfigObject.imUserName+":"+cryptoService.decrypt(imConfigObject.imPassword));
+    const imConfig = getConfig("POST", basicToken, url, formData);
     return await util.httpImCall(imConfig); 
-}
+}   
 
 getConfig = function(method, token, url, data) {
     return {
@@ -78,7 +81,8 @@ getConfig = function(method, token, url, data) {
         data: data,
         rejectUnauthorized: false,        
         headers: {
-            'Authorization': 'Bearer '+token, 
+            //'Authorization': 'Bearer '+token, 
+            'Authorization': token, 
             'Content-Type': 'application/json',
             'X-Atlassian-Token': 'nocheck'
         }

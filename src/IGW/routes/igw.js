@@ -67,7 +67,8 @@ router.get('/providers', igwController.getProviders);
  *       <b>issuestates</b> - States of issues in AppScan to be considered. Issues of specified state are pushed to Issue Management System. </BR>
  *       <b>issueseverities</b> - Severities of issues in AppScan to be considered. Issues of specified severity are pushed to Issue Management System.</BR>
  *       <b>imurl</b> – URL of Issue Management System.</BR>
- *       <b>imaccesstoken</b> – Access token of the IM user having enough rights to create and modify tickets in the Issue Management System.</BR>
+ *       <b>imUserName</b> – IM user name having enough rights to create and modify tickets in the Issue Management System.</BR>
+ *       <b>imPassword</b> – IM user password (encrypted) having enough rights to create and modify tickets in the Issue Management System. Run the command "node .\cryptoService.js --encrypt <password>" from the home directory to encrypt the password</BR>
  *       <b>improjectkey</b> – Project name or project key in the Issue Management System to which issues are copied</BR>
  *       <b>imissuetype</b> – The type of the issue/ticket to be created in the Issue Management System.</BR>
  *       <b>imsummary</b> – The format of the summary of the tickets in the Issue Management System.</BR>
@@ -108,7 +109,9 @@ router.get('/providers', igwController.getProviders);
  *                 default: High,Medium
  *               imurl:
  *                 type: string
- *               imaccesstoken:
+ *               imUserName:
+ *                 type: string
+ *               imPassword:
  *                 type: string
  *               improjectkey:
  *                 type: string
@@ -214,7 +217,7 @@ router.get('/providers/:providerid/config', tokenValidation.validateToken, igwCo
  *       500:
  *         description: An unknown error has occured.
 */ 
-router.get('/sync/start/providers/:providerid/syncinterval/:syncinterval', tokenValidation.validateToken, igwController.startSync);
+router.get('/sync/start/providers/:providerid/syncinterval/:syncinterval', tokenValidation.validateToken, igwController.startSynchronizer);
 
 
 /**
@@ -280,5 +283,7 @@ router.get('/sync/stop/providers/:providerid', tokenValidation.validateToken, ig
  *         description: An unknown error has occured.
 */ 
 router.get('/sync/results/providers/:providerid', tokenValidation.validateToken, igwController.getResults);
+
+
 
 module.exports = router;

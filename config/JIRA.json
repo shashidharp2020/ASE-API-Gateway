@@ -3,6 +3,8 @@
     "issuestates": "New,Open",
     "issueseverities": "High,Medium",
     "imurl": "http://localhost:8888",
+    "imUserName": "shashidharp",
+    "imPassword": "6c67d720286adb9bcac4a583f6175565",
     "imaccesstoken": "MjIzNDgzMTQyOTA0OlB8SsOIBhLYo7TFTIrvpj+FoDae",
     "improjectkey": "ASE1",
     "imissuetype": "Task",

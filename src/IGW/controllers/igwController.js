@@ -80,27 +80,31 @@ methods.getConfig = async (req, res) => {
     }
 }
 
-methods.startSync = async (req, res) => {
-    const providerId = req.params.providerid;
+methods.startSynchronizer = async (req, res) => {
+    try {
+        await methods.startSync(req.params.providerid, req.params.syncinterval);
+        return res.status(200).send("Started the job for provider "+ req.params.providerid);
+    } catch (error) {
+        logger.error(`Unable to start the synchronizer. ${error}`);
+        return res.status(409).send(`Job for the provider ${req.params.providerid} already exists`);    
+    }
+}
+
+methods.startSync = async (providerId, syncinterval) => {
+
     const jobInMap = jobsMap.get(providerId);
-
     if(typeof jobInMap != 'undefined')
-        return res.status(409).send(`Job for the provider ${providerId} already exists`);    
-    
-    var oldDateObj = new Date();
+        throw `Job for the provider ${providerId} already exists`;
+        
+    //var oldDateObj = new Date();
     var newDateObj = new Date();
-    newDateObj.setTime(oldDateObj.getTime() + (1 * 60 * 1000));
-    console.log(newDateObj);
-
-    var pattern = '1 '+newDateObj.getMinutes()+' '+newDateObj.getHours()+' */'+req.params.syncinterval+' * *';
-
-
-    console.log("pattern = " + pattern);
+    //newDateObj.setTime(oldDateObj.getTime() + (1 * 60 * 1000));
+    var pattern = '1 '+newDateObj.getMinutes()+' '+newDateObj.getHours()+' */'+syncinterval+' * *';
 
     var job = new CronJob(
         pattern,
         function() {
-            startCron(providerId, req.params.syncinterval);
+            startCron(providerId, syncinterval);
         },
         null,
         false,
@@ -111,8 +115,7 @@ methods.startSync = async (req, res) => {
     
     job.start();
     jobsMap.set(providerId, job);
-
-    return res.status(200).send("Started the job for provider "+ providerId);
+    logger.info("Started the job for provider "+ providerId);
 }
 
 methods.stopSync = async (req, res) => {

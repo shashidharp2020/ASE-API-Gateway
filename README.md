@@ -13,6 +13,8 @@
      APP_LOG = \<Path and name of the log file\>  
      MAXLOGSIZE = \<Maximum size of the log file\>  
      NUMBER_OF_BACKUPS = \<Number of backups\>
+     IM_PROVIDER = \<Provider Name. Ex: JIRA\>
+     SYNC_INTERVAL = \<Start the sync thread to push data from AppScan to Issue Management System. 1 means synchronizer runs everyday to push issues identified in the previous day. 2 means synchronizer runs once in 2 days to push issues identified in last 2 days. \>
 5.  Start the 'Gateway' application running the command "npm start" from the home directory.
 6.  Access the APIs swagger page using the URL https://\<hostname\>:\<port\>/ase/api/swagger. You can get this URL from the console/log.
 7.  Use the API to provide Issue Management details and start the synchronizer.

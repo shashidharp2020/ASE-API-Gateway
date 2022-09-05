@@ -23,7 +23,7 @@ methods.getCompletedScans = async (syncInterval, aseToken) => {
     const fDate = date.toISOString().slice(0, 10);
 
     date = new Date();
-    date.setDate(date.getDate() - 1);
+    //date.setDate(date.getDate() - 1);
     const tDate = date.toISOString().slice(0, 10);
 
     const queryString = "LastRanBetweenFromAndTodate="+fDate+"|"+tDate+",JobType=2";
