@@ -1,10 +1,5 @@
 const log4js = require("log4js");
 const logger = log4js.getLogger("userController");
-const jsonwebtoken = require("../../utils/jsonwebtoken");
-const https = require("https");
-const util = require("../../utils/util");
-const entitlementsController = require("./usertypeController");
-const constants = require("../../utils/constants");
 const userService = require("../service/userService");
 
 var methods = {};

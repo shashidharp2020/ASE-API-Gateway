@@ -1,6 +1,3 @@
-const log4js = require("log4js");
-const logger = log4js.getLogger("jobService");
-const https = require("https");
 const util = require("../../utils/util");
 const constants = require("../../utils/constants");
 

@@ -5,12 +5,10 @@ var schemas = {};
 
 schemas.userId = param("userId").isInt().isLength({ min: 1, max: 6 }).withMessage(constants.INVALID_USER_ACCOUNT_ID);
 schemas.userTypeId = param("userTypeId").isInt().isLength({ min: 1, max: 6 }).withMessage(constants.INVALID_USERTYPE_ID);
-schemas.usertype_name = body("usertype_name").isString({ min: 4, max: 20 }).withMessage(constants.INVALID_USERTYPE_NAME);
 schemas.userName = body("userName").exists().withMessage(constants.INVALID_ACCOUNT_USER_NAME);
 schemas.userTypeIdInBody = body("userTypeId").isInt().isLength({ min: 1, max: 6 }).withMessage(constants.INVALID_USERTYPE_ID);
 schemas.email = body("email").isEmail().withMessage(constants.INVALID_EMAIL);
 schemas.fullName = body("fullName").isString({ min: 4, max: 20 }).withMessage(constants.INVALID_FULL_NAME);
-schemas.middle_name = body("middle_name").isString({ min: 0, max: 20 }).withMessage(constants.INVALID_MIDDLE_NAME);
 
 schemas.accountCreate = [schemas.userName, schemas.userTypeIdInBody, schemas.email, schemas.fullName];
 schemas.accountUpdate = [schemas.userTypeIdInBody, schemas.email, schemas.fullName];
@@ -29,13 +27,5 @@ schemas.issueId = param("issueId").isInt().isLength({ min: 1, max: 6 }).withMess
 schemas.reportpackId = param("reportpackId").isInt().isLength({ min: 1, max: 6 }).withMessage(constants.INVALID_REPORTPACK_ID);
 schemas.jobActionId = param("actionId").isInt({ min:1, max: 4}).withMessage(constants.INVALID_JOB_ACTION_ID);
 
-schemas.keyId = body("keyId").isString({min:4, max:50}).withMessage(constants.INVALID_KEYID);
-schemas.keySecret = body("keySecret").isString({min:4, max:50}).withMessage(constants.INVALID_KEYSECRET);
-schemas.accessToken = body("accessToken").isString({min:4, max:50}).withMessage(constants.INVALID_ACCESSTOKEN);
-schemas.jiraLogin = [schemas.keyId, schemas.keySecret, schemas.accessToken];
-
-schemas.adminEmail = body('adminEmail').isEmail().withMessage(constants.INVALID_ADMIN_EMAIL);
-schemas.adminPassword = body('adminPassword').isLength({min:8, max:100}).withMessage(constants.INVALID_ADMIN_PASSWORD);
-schemas.igwLogin = [schemas.adminEmail, schemas.adminPassword];
 schemas.updateIssue = [schemas.appId, schemas.issueId];
 module.exports = schemas;

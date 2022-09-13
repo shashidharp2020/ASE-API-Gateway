@@ -1,9 +1,6 @@
 const log4js = require("log4js");
 const logger = log4js.getLogger("authController");
-const https = require('https');
 const jsonwebtoken = require('../../utils/jsonwebtoken');
-const util = require('../../utils/util');
-const constants = require('../../utils/constants');
 const authService = require('../service/authService');
 
 var methods = {};

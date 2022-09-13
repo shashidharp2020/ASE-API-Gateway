@@ -6,8 +6,8 @@ var cmdprogram = require('commander');
 const serviceName = "IssueGateway";
 
 var issueGatewayService = new service({
-    name: 'IssueGateway',
-    description: 'Interface to integrate SailPoint and AppScan',
+    name: 'ASE API Gateway',
+    description: 'ASE API Gateway',
     script: appFilePath
 });
 

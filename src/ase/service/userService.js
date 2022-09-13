@@ -1,4 +1,3 @@
-const https = require("https");
 const util = require("../../utils/util");
 const constants = require("../../utils/constants");
 

@@ -21,4 +21,9 @@
 7.  To install/uninstall the application as a Windows Service run below commands from home directory.  
     node service.js --install  
     node service.js --uninstall
+8.  If installing the service failed following the step 7, follow the below steps.
+      Download the nssm utility from "https://nssm.cc/download"
+      Launch the nssm.exe from win64 folder by running the command 'nssm.exe install "HCL Issue Gateway"'
+
+
 

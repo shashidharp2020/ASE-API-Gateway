@@ -2,22 +2,6 @@ const FormData = require("form-data");
 const axios = require('axios').default;
 var methods = {};
 
-// methods.httpASEOption = function(token, method, url, dataLength, etag) {
-//     return {
-//         hostname: process.env.ASE_HOSTNAME,
-//         port: process.env.ASE_PORT,
-//         path: '/'+process.env.ASE_CONTEXT+url,
-//         method: method,
-//         headers: {
-//           'Content-Type': 'application/json',
-//           'Content-Length': typeof dataLength==='undefined' ? 0 : dataLength,
-//           'Cookie': 'asc_session_id='+token,
-//           'asc_xsrf_token': token,
-//           'If-Match': etag ? etag : ''
-//         }
-//     };
-// }
-
 methods.httpCall = async function(method, token, url, data, etag) {
     const httpOptions = httpASEConfig(token, method, url, data, etag);
     return await httpASECall(httpOptions);

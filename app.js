@@ -1,4 +1,3 @@
-var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
@@ -52,8 +51,6 @@ app.use('/ase/api/auth', require('./src/ase/routes/auth'));
 app.use('/ase/api/job', require('./src/ase/routes/job'));
 app.use('/ase/api/issue', require('./src/ase/routes/issue'));
 app.use('/ase/api/application', require('./src/ase/routes/application'));
-app.use('/ase/api/jira', require('./src/IGW/routes/jira'));
-app.use('/ase/api/igw', require('./src/IGW/routes/igw'));
 require('./src/utils/swagger')(app);
 
 logger.info(constants.SWAGGER_PAGE_URL+` https://`+hostname+`:`+process.env.SECURE_PORT+constants.SWAGGER_CONTEXT_URL); 

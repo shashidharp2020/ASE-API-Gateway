@@ -3,6 +3,7 @@ const log4js = require("log4js");
 const logger = log4js.getLogger("jsonwebtoken");
 const constants = require('./constants');
 const jwtExpirySeconds = constants.TOKEN_EXPIRY_TIME; 
+//const jwtExpirySeconds = process.env.TOKEN_EXPIRY_TIME; 
 const jwtSecretkey = constants.JWT_SECRET_KEY;
 
 //Token format -Authorization: Bearer <access_token>
@@ -44,4 +45,8 @@ methods.createToken = function(data)
     });
 };
 
+methods.createNoExpiryToken = function(data)
+{
+    return jwt.sign({data}, jwtSecretkey, {});
+};
 module.exports = methods;

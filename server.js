@@ -5,7 +5,6 @@ require('dotenv').config()
 const log4js = require('log4js');
 const logger = log4js.getLogger("server");
 const constants = require('./src/utils/constants');
-const igwController = require('./src/IGW/controllers/igwController');
 
 const secure_options = {
     pfx: fs.readFileSync(process.env.SSL_PFX_CERT_FILE),
@@ -14,8 +13,6 @@ const secure_options = {
 
 startServer();
 
-if (typeof process.env.IM_PROVIDER != 'undefined' && typeof process.env.SYNC_INTERVAL != 'undefined')
-  igwController.startSync(process.env.IM_PROVIDER, process.env.SYNC_INTERVAL);
 
 function startServer()
 {
